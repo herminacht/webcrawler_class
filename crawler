@@ -1,0 +1,179 @@
+import requests
+from selenium import webdriver
+import time
+from selenium.webdriver.common.by import By
+
+import pandas as pd
+
+class selenium_tomato:
+    def __int__(self):
+
+        self.site_link = "https://www.rottentomatoes.com/"
+        self.object_paths = {
+
+            "browsing": {
+
+                # botao de página anterior de críticas
+                "previous":{
+                    "xpath" : '//*[@id="content"]/div/div/div/nav[1]/button[1]'
+                },
+
+                # botao de página posterior de críticas
+                "next":{
+                    "xpath" : '//*[@id="content"]/div/div/div/nav[1]/button[2]'
+                },
+
+                # botao de todas as reviews
+                "all_review":{
+
+                  "xpath" : '//*[@id="criticReviewsModule"]/div/div/div[1]/a[1]'
+
+                }
+
+            },
+
+            "search": {
+
+                # barra de busca
+                "input":{
+                    "xpath" : '//*[@id="header-main"]/search-algolia/search-algolia-controls/input'
+                },
+
+                # primeiro resultado
+                "first_result":{
+                    "xpath" : '//*[@id="search-results"]/search-page-result[1]/ul/search-page-media-row[1]'
+                },
+
+                "submit_input":{
+                    "xpath" : '//*[@id="header-main"]/search-algolia/search-algolia-controls/a/rt-icon//span/svg'
+                }
+
+            },
+
+            "review_elements":{
+
+                "key_names":{
+                    "xpath" : '//a[@class = "unstyled bold articleLink"]'
+                },
+
+                "key_texts":{
+                    "xpath" : '//div[@data-qa = "review-text"]'
+                },
+
+                "key_scores":{
+                    "xpath" : '//div[@class = "small subtle review-link"]'
+                },
+
+                "key_dates":{
+                    "xpath" : '//div[@data-qa = "review-date"]'
+                }
+
+            }
+
+        }
+
+        self.driver = webdriver.Chrome(executable_path = "C:\\Users\\kolle\\Documents\\web_driver") #aqui colocar onde o web_driver estiver instalado
+        self.driver.maximize_window()
+
+        self.movie_list = []
+        self.movie_counter = 0
+
+    def open_tomatoes(self):
+        time.sleep(2)
+        self.driver.get(self.site_link)
+        time.sleep(6)
+
+    def search_sort(self):
+        # pesquisar filme pelo elemento barra
+
+        search_bar = self.driver.find_element_by_xpath(self.object_paths["search"]["input"]["xpath"])
+        submit_input = self.driver.find_element_by_xpath(self.object_paths["search"]["submit_input"]["xpath"])
+
+        search_bar.sendKeys(self.movie_list[0])
+
+        # clicar no elemento do primeiro resultado
+        submit_input.click()
+
+    def critic_scrap(self, name_of_movie):
+
+        # atalhos para navegacao
+        all_review = self.driver.find_element_by_xpath(self.object_paths["browsing"]["all_review"]["xpath"])
+        next_page = self.driver.find_element_by_xpath(self.object_paths["browsing"]["next"]["xpath"])
+
+        # ja estara na pagina do filme, condicional para o laco
+        end_of_reviews = 0
+
+        # clicar em "todas as reviews"
+        all_review.click()
+
+        # depende da velocidade da internet
+        time.sleep(4)
+
+        display_table = pd.DataFrame(columns=['Crítico', 'Avaliação escrita', 'Data', 'Nota para o filme'])
+        temp_table = display_table
+
+        while end_of_reviews == 0:
+
+            time.sleep(3) # para o reinicio da varredura
+
+            #Avaliação escrita
+            texts = []
+            key_texts = self.driver.find_element_by_xpath(self.object_paths["review_elements"]["key_texts"]["xpath"])
+
+            for k in key_texts:
+                texts.append(k.text)
+                texts[:20]
+
+            ##################################################################
+            # Nota para o filme
+
+            scores = []
+            key_scores = self.driver.find_element_by_xpath(self.object_paths["review_elements"]["key_scores"]["xpath"])
+
+            for j in key_scores:
+                scores.append(j.text)
+                scores[:5]
+
+            ############################################################
+            # Datas das críticas
+
+            dates = []
+            key_dates = self.driver.find_element_by_xpath(self.object_paths["review_elements"]["key_dates"]["xpath"])
+
+            for m in key_dates:
+                dates.append(m.text)
+                dates[:20]
+
+            ############################################################
+            # Nome dos críticos
+
+            names = []
+            key_names = self.driver.find_element_by_xpath(self.object_paths["review_elements"]["key_names"]["xpath"])
+
+            for n in key_names:
+                names.append(n.text)
+                names[:20]
+
+            temp_table['Crítico'] = names
+            temp_table['Avaliação escrita'] = texts
+            temp_table['Data'] = dates
+            temp_table['Nota para o filme'] = scores
+
+            exporting_table = pd.concat([display_table,temp_table])
+
+            if len(next_page) > 0:
+                next_page.click()
+
+            else:
+                exporting_table.to_csv(name_of_movie)
+                end_of_reviews = 1
+
+    def movie_anex(self, movie):
+        self.movie_list.append(movie)
+        self.movie_counter += 1
+
+    def movie_removal(self):
+        self.movie_list.pop(0)
+        self.movie_counter -= 1
+
+
