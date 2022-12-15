@@ -1,32 +1,32 @@
-import requests
 from selenium import webdriver
 import time
-from selenium.webdriver.common.by import By
-
 import pandas as pd
+
 
 class selenium_tomato:
     def __int__(self):
 
         self.site_link = "https://www.rottentomatoes.com/"
+        # aqui colocar onde o web_driver estiver instalado
+        self.driver = webdriver.Chrome(executable_path=r"C:\ChromeDriver\webdriver.exe")
         self.object_paths = {
 
             "browsing": {
 
                 # botao de página anterior de críticas
-                "previous":{
-                    "xpath" : '//*[@id="content"]/div/div/div/nav[1]/button[1]'
+                "previous": {
+                    "xpath": '//*[@id="content"]/div/div/div/nav[1]/button[1]'
                 },
 
                 # botao de página posterior de críticas
-                "next":{
-                    "xpath" : '//*[@id="content"]/div/div/div/nav[1]/button[2]'
+                "next": {
+                    "xpath": '//*[@id="content"]/div/div/div/nav[1]/button[2]'
                 },
 
                 # botao de todas as reviews
-                "all_review":{
+                "all_review": {
 
-                  "xpath" : '//*[@id="criticReviewsModule"]/div/div/div[1]/a[1]'
+                    "xpath": '//*[@id="criticReviewsModule"]/div/div/div[1]/a[1]'
 
                 }
 
@@ -35,46 +35,44 @@ class selenium_tomato:
             "search": {
 
                 # barra de busca
-                "input":{
-                    "xpath" : '//*[@id="header-main"]/search-algolia/search-algolia-controls/input'
+                "input": {
+                    "xpath": '//*[@id="header-main"]/search-algolia/search-algolia-controls/input'
                 },
 
                 # primeiro resultado
-                "first_result":{
-                    "xpath" : '//*[@id="search-results"]/search-page-result[1]/ul/search-page-media-row[1]'
+                "first_result": {
+                    "xpath": '//*[@id="search-results"]/search-page-result[1]/ul/search-page-media-row[1]'
                 },
 
-                "submit_input":{
-                    "xpath" : '//*[@id="header-main"]/search-algolia/search-algolia-controls/a/rt-icon//span/svg'
+                "submit_input": {
+                    "xpath": '//*[@id="header-main"]/search-algolia/search-algolia-controls/a/rt-icon//span/svg'
                 }
 
             },
 
-            "review_elements":{
+            "review_elements": {
 
-                "key_names":{
-                    "xpath" : '//a[@class = "unstyled bold articleLink"]'
+                "key_names": {
+                    "xpath": '//a[@class = "unstyled bold articleLink"]'
                 },
 
-                "key_texts":{
-                    "xpath" : '//div[@data-qa = "review-text"]'
+                "key_texts": {
+                    "xpath": '//div[@data-qa = "review-text"]'
                 },
 
-                "key_scores":{
-                    "xpath" : '//div[@class = "small subtle review-link"]'
+                "key_scores": {
+                    "xpath": '//div[@class = "small subtle review-link"]'
                 },
 
-                "key_dates":{
-                    "xpath" : '//div[@data-qa = "review-date"]'
+                "key_dates": {
+                    "xpath": '//div[@data-qa = "review-date"]'
                 }
 
             }
 
         }
 
-        self.driver = webdriver.Chrome(executable_path = "C:\\Users\\kolle\\Documents\\web_driver") #aqui colocar onde o web_driver estiver instalado
         self.driver.maximize_window()
-
         self.movie_list = []
         self.movie_counter = 0
 
@@ -114,9 +112,9 @@ class selenium_tomato:
 
         while end_of_reviews == 0:
 
-            time.sleep(3) # para o reinicio da varredura
+            time.sleep(3)  # para o reinicio da varredura
 
-            #Avaliação escrita
+            # Avaliação escrita
             texts = []
             key_texts = self.driver.find_element_by_xpath(self.object_paths["review_elements"]["key_texts"]["xpath"])
 
@@ -159,7 +157,7 @@ class selenium_tomato:
             temp_table['Data'] = dates
             temp_table['Nota para o filme'] = scores
 
-            exporting_table = pd.concat([display_table,temp_table])
+            exporting_table = pd.concat([display_table, temp_table])
 
             if len(next_page) > 0:
                 next_page.click()
@@ -177,3 +175,5 @@ class selenium_tomato:
         self.movie_counter -= 1
 
 
+tomato_crawler = selenium_tomato()
+tomato_crawler.open_tomatoes()
